@@ -1,0 +1,29 @@
+version: "3"
+services:
+  backend:
+    build: .
+    restart: always
+    command: uvicorn search_hint.main:app --port 8000
+    volumes:
+      - ./:/app
+    network_mode: host
+    depends_on:
+      - worker
+      - redis
+  worker:
+    build: .
+    command: celery -A search_hint.main:celery_app worker -P solo --loglevel=info --logfile=celery.log
+    restart: always
+    volumes:
+      - ./:/app
+    environment:
+      CELERY_BROKER_URL: "redis://localhost:6379/0"
+      CELERY_RESULT_BACKEND: "redis://localhost:6379/0"
+    network_mode: host
+    depends_on:
+      - redis
+  redis:
+    image: redis:6-alpine
+    restart: always
+    ports:
+      - 6379:6379
