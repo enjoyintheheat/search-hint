@@ -12,6 +12,7 @@ from sentence_transformers import SentenceTransformer
 from scipy import spatial
 from dotenv import load_dotenv
 import os
+from sklearn.cluster import KMeans
 
 # Пороговое значение для BERT-модели
 THRESHOLD = 0.7
@@ -84,16 +85,27 @@ class TextProcessor:
 
         emb = model.encode(for_bert)
 
-        distances = set()
-
+        distances = []
         for i, r in enumerate(united):
             dist = 1 - spatial.distance.cosine(emb[i], v1)
-            hash = int(dist*100)
-            if dist > THRESHOLD and not hash in distances:
+            if dist > THRESHOLD:
                 final.append([dist, uni_dict[r].lower()])
-                distances.add(hash)
-
-        final = np.array(sorted(final, key=lambda l: l[0], reverse=True))
+                distances.append(emb[i])
+                
+        
+        clf = KMeans(n_clusters=2, init='k-means++', n_init=100, random_state=42)
+        labels = clf.fit_predict(distances)
+        
+        f = []
+        previous_cluster = 0
+        for index, sentence in enumerate(final):
+            if index > 0:
+                previous_cluster = labels[index - 1]
+            cluster = labels[index]
+            if previous_cluster != cluster:
+                f.append([sentence[0], str(sentence[1])])
+                
+        final = np.array(sorted(f, key=lambda l:l[0], reverse=True))
         return final[:10, 1]
 
 
