@@ -37,3 +37,11 @@ vine==5.0.0
 watchgod==0.7
 wcwidth==0.2.5
 websockets==10.0
+annoy==1.17.0
+numpy==1.20.3
+pyspellchecker==0.6.2
+scikit_learn==1.0.1
+scipy==1.7.1
+sentence_transformers==2.1.0
+spacy==3.2.0
+spellchecker==0.4
