@@ -25,7 +25,7 @@ DEEP = 10
 
 # %%
 
-model = SentenceTransformer('sentence-transformers/LaBSE', device='cuda')
+model = SentenceTransformer('sentence-transformers/LaBSE', device='cpu')
 
 nlp_ru = spacy.load("ru_core_news_lg", disable=['parser', 'ner'])
 
