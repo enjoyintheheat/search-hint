@@ -82,17 +82,16 @@ class TextProcessor:
         for r in united:
             for_bert.append(uni_dict[r].lower())
 
-        t = time.time()
         emb = model.encode(for_bert)
 
-        print(time.time() - t)
-
-        distances = []
+        distances = set()
 
         for i, r in enumerate(united):
             dist = 1 - spatial.distance.cosine(emb[i], v1)
-            if dist > THRESHOLD:
+            hash = int(dist*100)
+            if dist > THRESHOLD and not hash in distances:
                 final.append([dist, uni_dict[r].lower()])
+                distances.add(hash)
 
         final = np.array(sorted(final, key=lambda l: l[0], reverse=True))
         return final[:10, 1]
