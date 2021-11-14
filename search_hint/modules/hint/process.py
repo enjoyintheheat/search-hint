@@ -1,5 +1,8 @@
+from typing import List
+from functools import lru_cache
 from search_hint.common.settings import model_dir
-from correct import correction
+from search_hint.modules.hint.correct import correction
+import time
 import spacy
 import numpy as np
 from annoy import AnnoyIndex
@@ -10,11 +13,11 @@ from scipy import spatial
 from dotenv import load_dotenv
 import os
 
-#Пороговое значение для BERT-модели
+# Пороговое значение для BERT-модели
 THRESHOLD = 0.7
 RESULTS_QTY = 10
 
-#Глубина поиска. Чем больше - тем разнообразнее результаты, но медленнее
+# Глубина поиска. Чем больше - тем разнообразнее результаты, но медленнее
 DEEP = 10
 
 
@@ -40,7 +43,7 @@ with open(os.path.join(model_dir, 'words_other.pkcls'), 'rb') as file:
 
 with open(os.path.join(model_dir, 'words_popular.pkcls'), 'rb') as file:
     words_popular = pickle.load(file)
-    
+
 
 # %%
 """
@@ -48,6 +51,7 @@ with open(os.path.join(model_dir, 'words_popular.pkcls'), 'rb') as file:
 """
 
 # %%
+
 
 class TextProcessor:
 
@@ -57,38 +61,43 @@ class TextProcessor:
     def recognize(self, text: str) -> List[str]:
         if text == '':
             return []
-        
+
         text = correction(text)
-        
+
         v1 = model.encode(text)
-        
+
         v = nlp_ru(text).vector
         v = np.array(v).astype(float).tolist()
-        
+
         res_popular = popular.get_nns_by_vector(v, RESULTS_QTY*DEEP)
         res_other = other.get_nns_by_vector(v, RESULTS_QTY*DEEP)
-        
+
         united = res_popular + res_other
         uni_dict = dict(words_other)
         uni_dict.update(words_popular)
-        
-        final = []            
+
+        final = []
         for_bert = []
-        
+
         for r in united:
             for_bert.append(uni_dict[r].lower())
-        
+
         t = time.time()
         emb = model.encode(for_bert)
-        
+
         print(time.time() - t)
-        
+
         distances = []
-                 
+
         for i, r in enumerate(united):
             dist = 1 - spatial.distance.cosine(emb[i], v1)
             if dist > THRESHOLD:
                 final.append([dist, uni_dict[r].lower()])
-        
-        final = np.array(sorted(final, key=lambda l:l[0], reverse=True))
+
+        final = np.array(sorted(final, key=lambda l: l[0], reverse=True))
         return final[:10, 1]
+
+
+@lru_cache()
+def text_processor_factory() -> TextProcessor:
+    return TextProcessor()

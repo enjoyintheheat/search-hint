@@ -26,3 +26,6 @@ COPY ./requirements.txt .
 RUN pip install -r requirements.txt
 
 COPY . .
+
+RUN python -m spacy download en_core_web_lg
+RUN python -m spacy download ru_core_news_lg
