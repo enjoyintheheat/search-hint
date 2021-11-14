@@ -5,7 +5,7 @@ import numpy as np
 from dotenv import load_dotenv
 
 
-SMILES = {'🧳': 'Багаж',
+SMILES = {'🧳': 'Чемодан',
 '🌂': 'Зонтик',
 '☂️': 'Зонтик',
 '🧵': 'Нитки',
